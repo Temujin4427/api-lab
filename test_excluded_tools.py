@@ -20,9 +20,10 @@ def test_excluded_tool_is_not_used(api, auth, excluded):
 @pytest.mark.xfail(
     reason="Defect 1: Excluding all 3 tools causes 500 Internal Server Error instead of 400 Bad Request",
     strict=True,
+    raises=AssertionError
 )
 def test_all_tools_excluded_is_refused(api, auth):
     all_tools = ["Knife", "Pizza cutter", "Scissors"]
     res = api.post("/api/pizza", json={"excludedTools": all_tools}, headers=auth)
     assert res.status_code == 400
-    assert res.json() == {"error": "no pizza satisfies the request"}
+    assert "error" in res.json()

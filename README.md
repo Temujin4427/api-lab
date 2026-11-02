@@ -16,3 +16,16 @@
 | C4 Token          | the user's own (base) | from auth           | `test_base_choice_is_saved`  |
 |                   | none                  | no header           | `test_token_missing`         |
 |                   | wrong length          | token short         | `test_token_short`           |
+
+## How to run
+
+Windows (PowerShell):
+
+```
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+pytest -v --html=report.html --self-contained-html
+```
+
+macOS / Linux: use `source .venv/bin/activate` instead of `.venv\Scripts\activate`.

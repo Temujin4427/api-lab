@@ -18,35 +18,46 @@ def test_stars_out_of_range(api, auth, pizza_id, stars):
     assert res.status_code == 400
     assert res.json() == {"error": STARS_ERROR}
 
-# C2: Type of stars (decimal, text, missing)
+# C2: Type of stars is decimal. Refused with error message.
 def test_stars_decimal(api, auth, pizza_id):
     new = {"pizza_id": pizza_id, "stars": 3.5}
     res = api.post("/api/ratings", json=new, headers=auth)
     assert res.status_code == 400
+    assert res.json() == {
+        "error": "json: cannot unmarshal number 3.5 into Go struct field Rating.stars of type int"
+    }
 
+# C2: Type of stars is text. Refused with error message.
 def test_stars_text(api, auth, pizza_id):
     new = {"pizza_id": pizza_id, "stars": "3"}
     res = api.post("/api/ratings", json=new, headers=auth)
     assert res.status_code == 400
+    assert res.json() == {
+        "error": "json: cannot unmarshal string into Go struct field Rating.stars of type int"
+    }
 
+# C2: Stars field is missing. Refused with the same message as an out-of-range value.
 def test_stars_missing(api, auth, pizza_id):
     new = {"pizza_id": pizza_id}
     res = api.post("/api/ratings", json=new, headers=auth)
     assert res.status_code == 400
+    assert res.json() == {"error": STARS_ERROR}
 
-# C3: Pizza does not exist
+# C3: Pizza does not exist. Refused with 400 and an error message.
 def test_pizza_does_not_exist(api, auth):
     new = {"pizza_id": 999999999, "stars": 3}
     res = api.post("/api/ratings", json=new, headers=auth)
-    assert res.status_code in (400, 404)
+    assert res.status_code == 400
+    assert res.json() == {"error": "pizza ID 999999999 not found"}
 
-# C4: Token (none, wrong length)
+# C4: No token. Refused with 401 and an error message.
 def test_token_missing(api, pizza_id):
     new = {"pizza_id": pizza_id, "stars": 3}
     res = api.post("/api/ratings", json=new)
     assert res.status_code == 401
     assert res.json() == {"error": "authentication failed"}
 
+# C4: A token of the wrong length. Refused with 401 and an error message.
 def test_token_short(api, pizza_id):
     new = {"pizza_id": pizza_id, "stars": 3}
     res = api.post("/api/ratings", json=new, headers={"Authorization": "token short"})
