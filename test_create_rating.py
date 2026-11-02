@@ -17,3 +17,38 @@ def test_stars_out_of_range(api, auth, pizza_id, stars):
     res = api.post("/api/ratings", json=new, headers=auth)
     assert res.status_code == 400
     assert res.json() == {"error": STARS_ERROR}
+
+# C2: Type of stars (decimal, text, missing)
+def test_stars_decimal(api, auth, pizza_id):
+    new = {"pizza_id": pizza_id, "stars": 3.5}
+    res = api.post("/api/ratings", json=new, headers=auth)
+    assert res.status_code == 400
+
+def test_stars_text(api, auth, pizza_id):
+    new = {"pizza_id": pizza_id, "stars": "3"}
+    res = api.post("/api/ratings", json=new, headers=auth)
+    assert res.status_code == 400
+
+def test_stars_missing(api, auth, pizza_id):
+    new = {"pizza_id": pizza_id}
+    res = api.post("/api/ratings", json=new, headers=auth)
+    assert res.status_code == 400
+
+# C3: Pizza does not exist
+def test_pizza_does_not_exist(api, auth):
+    new = {"pizza_id": 999999999, "stars": 3}
+    res = api.post("/api/ratings", json=new, headers=auth)
+    assert res.status_code in (400, 404)
+
+# C4: Token (none, wrong length)
+def test_token_missing(api, pizza_id):
+    new = {"pizza_id": pizza_id, "stars": 3}
+    res = api.post("/api/ratings", json=new)
+    assert res.status_code == 401
+    assert res.json() == {"error": "authentication failed"}
+
+def test_token_short(api, pizza_id):
+    new = {"pizza_id": pizza_id, "stars": 3}
+    res = api.post("/api/ratings", json=new, headers={"Authorization": "token short"})
+    assert res.status_code == 401
+    assert res.json() == {"error": "authentication failed"}
